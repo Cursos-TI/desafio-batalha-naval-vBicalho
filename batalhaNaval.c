@@ -7,55 +7,104 @@
 // ================================
 // Função principal
 // ================================
-#define TAM 10   // tamanho fixo do tabuleiro
-#define NAVIO 3  // valor que representa uma parte de navio
-#define AGUA 0   // valor que representa água
-#define TAMANHO_NAVIO 3  // cada navio ocupa 3 posições
+#define T 10   // tamanho do tabuleiro
+#define H 5    // tamanho das matrizes de habilidade
+
+// Função auxiliar para evitar numero negativo
+int valor_absoluto(int x) {
+    if (x < 0)
+        return -x;
+    else
+        return x;
+}
 
 int main() {
-    int tabuleiro[TAM][TAM];
-    int i, j;
+    int tabuleiro[T][T] = {0};
 
-    // 🔹 1. Inicializa todo o tabuleiro com 0 (água)
-    for (i = 0; i < TAM; i++) {
-        for (j = 0; j < TAM; j++) {
-            tabuleiro[i][j] = AGUA;
+    // --- Posicionando navios (valor 3) ---
+    // Navio horizontal
+    int linhaH = 2, colunaH = 1;
+    for (int j = 0; j < 3; j++) {
+        tabuleiro[linhaH][colunaH + j] = 3;
+    }
+
+    // Navio vertical
+    int linhaV = 4, colunaV = 6;
+    for (int i = 0; i < 3; i++) {
+        tabuleiro[linhaV + i][colunaV] = 3;
+    }
+
+    // --- Criando matrizes de habilidades ---
+    int cone[H][H] = {0};
+    int cruz[H][H] = {0};
+    int octaedro[H][H] = {0};
+
+    // Cone (aponta para baixo)
+    for (int i = 0; i < H; i++) {
+        for (int j = 0; j < H; j++) {
+            if (j >= H/2 - i && j <= H/2 + i)
+                cone[i][j] = 1;
         }
     }
 
-    // 🔹 2. Definição das coordenadas iniciais dos navios
-    // Dois navios horizontais/verticais e dois diagonais
-
-    // Navio 1 (horizontal) — começa na linha 0, coluna 1
-    int linha1 = 0, coluna1 = 1;
-    for (j = coluna1; j < coluna1 + TAMANHO_NAVIO; j++) {
-        tabuleiro[linha1][j] = NAVIO;
+    // Cruz (centro e linhas/colunas centrais)
+    for (int i = 0; i < H; i++) {
+        for (int j = 0; j < H; j++) {
+            if (i == H/2 || j == H/2)
+                cruz[i][j] = 1;
+        }
     }
 
-    // Navio 2 (vertical) — começa na linha 4, coluna 5
-    int linha2 = 4, coluna2 = 5;
-    for (i = linha2; i < linha2 + TAMANHO_NAVIO; i++) {
-        tabuleiro[i][coluna2] = NAVIO;
+    // Octaedro (losango)
+    for (int i = 0; i < H; i++) {
+        for (int j = 0; j < H; j++) {
+            int di = i - H/2;
+            int dj = j - H/2;
+            if (di < 0) di = -di;   
+            if (dj < 0) dj = -dj;
+            if (di + dj <= H/2)
+                octaedro[i][j] = 1;
+        }
     }
 
-    // Navio 3 (diagonal principal) — tabuleiro[i][i]
-    // começa em (2,2)
-    int linha3 = 2, coluna3 = 2;
-    for (i = 0; i < TAMANHO_NAVIO; i++) {
-        tabuleiro[linha3 + i][coluna3 + i] = NAVIO;
+    // --- Aplicando habilidades no tabuleiro ---
+    int origem_cone_l = 1, origem_cone_c = 1;
+    int origem_cruz_l = 5, origem_cruz_c = 4;
+    int origem_octa_l = 7, origem_octa_c = 7;
+
+    for (int i = 0; i < H; i++) {
+        for (int j = 0; j < H; j++) {
+
+            // Cone
+            if (cone[i][j] == 1) {
+                int linha = origem_cone_l + i - H/2;
+                int coluna = origem_cone_c + j - H/2;
+                if (linha >= 0 && linha < T && coluna >= 0 && coluna < T && tabuleiro[linha][coluna] == 0)
+                    tabuleiro[linha][coluna] = 5;
+            }
+
+            // Cruz
+            if (cruz[i][j] == 1) {
+                int linha = origem_cruz_l + i - H/2;
+                int coluna = origem_cruz_c + j - H/2;
+                if (linha >= 0 && linha < T && coluna >= 0 && coluna < T && tabuleiro[linha][coluna] == 0)
+                    tabuleiro[linha][coluna] = 5;
+            }
+
+            // Octaedro
+            if (octaedro[i][j] == 1) {
+                int linha = origem_octa_l + i - H/2;
+                int coluna = origem_octa_c + j - H/2;
+                if (linha >= 0 && linha < T && coluna >= 0 && coluna < T && tabuleiro[linha][coluna] == 0)
+                    tabuleiro[linha][coluna] = 5;
+            }
+        }
     }
 
-    // Navio 4 (diagonal secundária) — tabuleiro[i][9 - i]
-    // começa em (6,6) e vai para cima e à direita
-    int linha4 = 6, coluna4 = 6;
-    for (i = 0; i < TAMANHO_NAVIO; i++) {
-        tabuleiro[linha4 - i][coluna4 + i] = NAVIO;
-    }
-
-    // 🔹 3. Exibe o tabuleiro completo
-    printf("=== TABULEIRO BATALHA NAVAL ===\n\n");
-    for (i = 0; i < TAM; i++) {
-        for (j = 0; j < TAM; j++) {
+    // --- Exibindo o tabuleiro ---
+    printf("\n=== TABULEIRO BATALHA NAVAL ===\n\n");
+    for (int i = 0; i < T; i++) {
+        for (int j = 0; j < T; j++) {
             printf("%d ", tabuleiro[i][j]);
         }
         printf("\n");
